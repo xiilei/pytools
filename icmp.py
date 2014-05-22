@@ -31,9 +31,6 @@ class SenderThread(Thread):
             except socket.error as se:
                 print(se)
                 break
-            finally:
-                #time.sleep(1)
-                pass
 
 
 def ping(ip, total=4, ipv6=False):
@@ -56,12 +53,12 @@ def ping(ip, total=4, ipv6=False):
     sender.start()
 
     rc = 0
-    while True:
+    while rc < total:
         try:
             recv_time = time.time()
             recv_packet, addr = sock.recvfrom(1024)
             head = recv_packet[20:28]
-            # i think so
+            # I think so ...
             ttl, = unpack('B', recv_packet[8:9])
             type1, code, checksum1, packet_id, sequence = unpack("BBHHh", head)
             if packet_id == cid:
@@ -72,8 +69,6 @@ def ping(ip, total=4, ipv6=False):
             break
         finally:
             rc += 1
-            if rc > total-1:
-                break
     sock.close()
 
 
