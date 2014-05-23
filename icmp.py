@@ -16,21 +16,22 @@ from struct import pack, unpack, calcsize
 
 class SenderThread(Thread):
 
-    def __init__(self, sock, packet, ip, total=4):
+    def __init__(self, sock, cid, ip, total=4):
         Thread.__init__(self)
         self._sock = sock
         self._total = total
-        self._packet = packet
+        self._cid = cid
         self._ip = ip
 
     def run(self):
         for i in range(self._total):
-            time.sleep(1)
             try:
-                self._sock.sendto(self._packet, (self._ip, 0))
+                self._sock.sendto(icmppacket((i+1), self._cid), (self._ip, 0))
             except socket.error as se:
                 print(se)
                 break
+            finally:
+                time.sleep(1)
 
 
 def ping(ip, total=4, ipv6=False):
@@ -49,23 +50,23 @@ def ping(ip, total=4, ipv6=False):
 
     cid = os.getpid() & 0xffffff
 
-    sender = SenderThread(sock, icmppacket(cid), ip, total)
+    sender = SenderThread(sock, cid, ip, total)
     sender.start()
 
     rc = 0
     while rc < total:
         try:
-            recv_time = time.time()
             recv_packet, addr = sock.recvfrom(1024)
+            recv_time = time.time()
             head = recv_packet[20:28]
             # I think so ...
             ttl, = unpack('B', recv_packet[8:9])
             type1, code, checksum1, packet_id, sequence = unpack("BBHHh", head)
             if packet_id == cid:
                 send_time = unpack("d", recv_packet[28:28 + calcsize('d')])[0]
-                print("reply:%s time:%.2fms ttl=%s" % (addr[0], (recv_time-send_time-rc)*1000, ttl))
-        except socket.error as re:
-            print(re)
+                print("reply:%s seq=%s ttl=%s time:%.2fms" % (addr[0], sequence/256, ttl, (recv_time-send_time)*1000))
+        except socket.error as _re:
+            print(_re)
             break
         finally:
             rc += 1
@@ -84,11 +85,13 @@ def checksum(packet):
     return (~sum) & 0xffff
 
 
-def icmppacket(cid=98, ipv6=False):
+#todo padding
+def icmppacket(sequence=1, cid=98, ipv6=False, psize=64):
     #type,code,Checksum,ID,Sequence
-    sequence = 2
-    head = pack('BBHHH', 8, 0, 0, cid, sequence)
-    data = pack('d', time.time())
+    sequence *= 256
+    psize -= 8
+    head = pack('BBHHh', 8, 0, 0, cid, sequence)
+    data = pack('d', time.time())+pack('Q', psize-calcsize("d"))
     csum = checksum(head+data)
     return pack('BBHHh', ipv6 and 128 or 8, 0, csum, cid, sequence)+data
 
