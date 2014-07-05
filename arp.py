@@ -24,6 +24,8 @@ def arppacket():
     target_ip = pack('!4B', *[int(x) for x in target_ip.split('.')])
 
     socket_mac = sender_mac
+    
+    #@see https://github.com/krig/send_arp.py/blob/master/send_arp.py
     arpframe = [
         ### ETHERNET
         # destination MAC addr
