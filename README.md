@@ -1,4 +1,4 @@
 pytools
 =======
 
-some tools for python
+some tools written in python
