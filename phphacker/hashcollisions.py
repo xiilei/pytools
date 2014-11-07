@@ -15,7 +15,7 @@ def build_data(length):
     while key <= maxkey:
         data.append(str(int(key)))
         key = key + length
-    print('=0&'.join(data))
+    return '=0&'.join(data).encode('utf-8')
 
 
 def post(url, length=math.pow(2, 16)):
