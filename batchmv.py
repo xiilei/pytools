@@ -16,7 +16,7 @@ def md5hex(s):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("miss args, use like batchmv.py /var/www/pdf")
+        print("miss args, use like python3 batchmv.py /var/www/pdf")
         sys.exit(0)
 
     basePath = sys.argv[1]
