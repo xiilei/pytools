@@ -9,7 +9,7 @@ import stat
 
 def chmod(targetdir):
     """
-     chmod 644 for files
+     remove *.pyc files
     """
     for root, dirs, files in os.walk(targetdir):
         for file in files:
@@ -21,5 +21,4 @@ def chmod(targetdir):
 
 
 if __name__ == '__main__':
-    ##print(os.mkdir('/home/xilei/work/test/dirs'), 755)
     chmod('./')
