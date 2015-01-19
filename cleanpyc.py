@@ -7,7 +7,7 @@ from os.path import join
 import stat
 
 
-def chmod(targetdir):
+def rmpyc(targetdir):
     """
      remove *.pyc files
     """
@@ -21,4 +21,4 @@ def chmod(targetdir):
 
 
 if __name__ == '__main__':
-    chmod('./')
+    rmpyc('./')
