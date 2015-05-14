@@ -54,24 +54,26 @@ def sender():
     sock.bind(("eth0", socket.SOCK_RAW))
     packet = arppacket(
             target_ip="192.168.1.80",
-            target_mac= pack_mac("b8:2a:72:c5:44:b6"),
-            sender_ip="192.168.1.253",
+            target_mac= pack_mac("ff:ff:ff:ff:ff:ff"),
+            sender_ip="192.168.1.1",
             sender_mac= sock.getsockname()[4],
             arp_type=ARPOP_REPLY
     )
-    for x in range(1,1000):
-        print("send %d" % x)
-        sock.send(packet)
-        time.sleep(1)  
-    sock.close()
+    try:
+        for x in range(1,1000):
+            print("send %d" % x)
+            sock.send(packet)
+            time.sleep(1)  
+    except KeyboardInterrupt :
+        print("exit.")
+    except Exception as e:
+        raise e
+    finally:
+        sock.close()
+    
 
 def pack_mac(mac_str):
     return pack('!6B',*(int(x,16) for x in mac_str.split(':') ))
 
-
 if __name__ == "__main__":
-    try:
-        sender()
-    except Exception, e:
-        raise e
-    
+    sender()
