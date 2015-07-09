@@ -90,7 +90,7 @@ def send_all(gateway='192.168.1.1',device='eth0',exclude=None,arp_type=ARPOP_REP
                 target_ip=ip,
                 target_mac= pack_mac(mac),
                 sender_ip=gateway,
-                sender_mac= pack_mac('8c:fa:ba:f3:ac:e7'),#sock.getsockname()[4],
+                sender_mac= sock.getsockname()[4],
                 arp_type=arp_type
         ))
     try:
