@@ -79,17 +79,17 @@ def create_l2sock(device):
     return sock
     
 #send by nmap -sn,arp -n
-def send_all(gateway='192.168.1.1',device='eth0',exclude=None,arp_type=ARPOP_REPLY):
+def send_all(sender_ip='192.168.1.1',device='eth0',exclude=None,arp_type=ARPOP_REPLY):
     hosts = hosts_map(device,exclude) 
     packets = set()
     sock = create_l2sock(device)
     for ip,mac in hosts:
-        if ip == gateway:
+        if ip == sender_ip:
             continue
         packets.add(arppacket(
                 target_ip=ip,
                 target_mac= pack_mac(mac),
-                sender_ip=gateway,
+                sender_ip=sender_ip,
                 sender_mac= sock.getsockname()[4],
                 arp_type=arp_type
         ))
@@ -106,12 +106,12 @@ def send_all(gateway='192.168.1.1',device='eth0',exclude=None,arp_type=ARPOP_REP
         sock.close()
 
 #send one
-def send_one(target_ip,target_mac,gateway='192.168.1.1',arp_type=ARPOP_REPLY,device='eth0'):
+def send_one(target_ip,target_mac,sender_ip='192.168.1.1',arp_type=ARPOP_REPLY,device='eth0'):
     sock = create_l2sock(device)
     packet = arppacket(
             target_ip=target_ip,
-            target_mac= pack_mac(target_mac),
-            sender_ip=gateway,
+            target_mac= target_mac,
+            sender_ip=sender_ip,
             sender_mac= sock.getsockname()[4],
             arp_type=arp_type
     )
@@ -131,6 +131,6 @@ if __name__ == '__main__':
     send_all(
         '192.168.2.1',
         device='eth0',
-        exclude=('192.168.2.125','192.168.2.108','192.168.2.101'),
+        exclude=('192.168.2.111','192.168.2.108','192.168.2.101'),
         arp_type=ARPOP_REPLY
         )
