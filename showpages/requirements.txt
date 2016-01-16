@@ -1,1 +1,2 @@
-selenium
+gevent>=1.0
+selenium>2.0
