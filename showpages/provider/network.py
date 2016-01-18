@@ -35,6 +35,13 @@ def arp_packet(target_ip,target_mac,sender_ip,sender_mac,arp_type=ARPOP_REQUEST)
     ]
     return b''.join(arpframe)
 
+def icmp_packet():
+    pass
+
+
+def checksum(source):
+    pass
+
 def pack_mac(mac_str):
     return pack('!6B',*(int(x,16) for x in mac_str.split(':') ))
 
