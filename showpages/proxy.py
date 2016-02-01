@@ -10,11 +10,24 @@ from six.moves.urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer,WSGIHandler
 
 def get_dist(environ):
-    http_host = environ.get('HTTP_HOST', '').lower()
-    http_host_partail = http_host.split(':')
-    if len(http_host_partail) == 2:
-        return http_host_partail[0], int(http_host_partail[1])
-    return http_host,80
+    keys = ('PATH_INFO','HTTP_HOST')
+    host = ''
+    port = 80
+    if environ.get('wsgi.url_scheme') == 'https':
+        return False,443
+    for k in keys:
+        host = environ.get(k,'')
+        if not host:
+            continue
+        if host.startswith('http'):
+            host = host[7:].lstrip('/')
+        host_partail = host.split(':')
+        if len(host_partail)==2:
+            return host_partail[0],int(host_partail[1])
+        return host,port
+
+def get_url(environ):
+    pass
 
 def is_visible_request():
     '''
@@ -26,9 +39,12 @@ def proxy_request():
     pass
 
 def application(environ,start_response):
-    start_response("200 OK",[("Content-Type", "text/plain; charset=utf-8")])
     host,port = get_dist(environ)
-    return b'request to %s:%d' % (host,port)
+    if not host:
+        start_response('501 Not Implemented', [])
+    else:
+        start_response("200 OK",[("Content-Type", "text/plain; charset=utf-8")])
+        return b'request to %s:%d' % (host,port)
 
 if __name__ == '__main__':
     WSGIServer(':8080', application).serve_forever()
