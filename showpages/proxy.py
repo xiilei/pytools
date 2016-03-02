@@ -6,28 +6,25 @@ A hackable http proxy
 """
 import logging
 
+import requests
 from six.moves.urllib.parse import urlparse
+from gevent import monkey; monkey.patch_all()
 from gevent.pywsgi import WSGIServer,WSGIHandler
 
 def get_dist(environ):
-    keys = ('PATH_INFO','HTTP_HOST')
-    host = ''
-    port = 80
     if environ.get('wsgi.url_scheme') == 'https':
-        return False,443
-    for k in keys:
-        host = environ.get(k,'')
-        if not host:
-            continue
-        if host.startswith('http'):
-            host = host[7:].lstrip('/')
-        host_partail = host.split(':')
-        if len(host_partail)==2:
-            return host_partail[0],int(host_partail[1])
-        return host,port
-
-def get_url(environ):
-    pass
+        return False,'',None,None
+    url = environ['PATH_INFO']
+    if environ['QUERY_STRING']:
+        url += '?'+environ['QUERY_STRING']
+    method = environ['REQUEST_METHOD']
+    body = None
+    headers = {
+        'user-agent':environ.get('HTTP_USER_AGENT','Chrome Linux')
+    }
+    if method != 'GET':
+        body = env['wsgi.input'].read().strip()
+    return method,url,body,headers
 
 def is_visible_request():
     '''
@@ -39,12 +36,14 @@ def proxy_request():
     pass
 
 def application(environ,start_response):
-    host,port = get_dist(environ)
-    if not host:
+    method,url,body,headers = get_dist(environ)
+    if not method:
         start_response('501 Not Implemented', [])
     else:
-        start_response("200 OK",[("Content-Type", "text/plain; charset=utf-8")])
-        return b'request to %s:%d' % (host,port)
-
+        if method == 'GET':
+            r = requests.get(url,headers=headers)
+            print(r.reason)
+            start_response("%d %s" % (r.status_code,r.reason),[("Content-Type", "text/html; charset=utf-8")])
+            return r.content
 if __name__ == '__main__':
     WSGIServer(':8080', application).serve_forever()
