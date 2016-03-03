@@ -6,10 +6,10 @@ A hackable http proxy
 """
 import logging
 
-import requests
-from six.moves.urllib.parse import urlparse
 from gevent import monkey; monkey.patch_all()
+from six.moves.urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer,WSGIHandler
+import requests
 
 def get_dist(environ):
     if environ.get('wsgi.url_scheme') == 'https':
@@ -19,12 +19,24 @@ def get_dist(environ):
         url += '?'+environ['QUERY_STRING']
     method = environ['REQUEST_METHOD']
     body = None
-    headers = {
-        'user-agent':environ.get('HTTP_USER_AGENT','Chrome Linux')
-    }
     if method != 'GET':
-        body = env['wsgi.input'].read().strip()
-    return method,url,body,headers
+        body = environ['wsgi.input'].read().strip()
+    return method,url,body
+
+def get_headers(environ):
+    headers = {}
+    for k,v in environ.iteritems():
+        if k.startswith('HTTP_') and v is not '':
+            headers[k[5:].replace("_", "-").lower()] = v
+    return headers
+
+def start_headers(headers):
+    enabled = ('Content-Type','Content-Length','Server')
+    new_headers = []
+    for k,v in headers.iteritems():
+        if k in enabled:
+            new_headers.append((k,v))
+    return new_headers
 
 def is_visible_request():
     '''
@@ -36,14 +48,14 @@ def proxy_request():
     pass
 
 def application(environ,start_response):
-    method,url,body,headers = get_dist(environ)
+    method,url,body = get_dist(environ)
     if not method:
         start_response('501 Not Implemented', [])
     else:
         if method == 'GET':
-            r = requests.get(url,headers=headers)
-            print(r.reason)
-            start_response("%d %s" % (r.status_code,r.reason),[("Content-Type", "text/html; charset=utf-8")])
+            r = requests.get(url,headers=get_headers(environ))
+            start_response("%d %s" % (r.status_code,r.reason),start_headers(r.headers))
             return r.content
+
 if __name__ == '__main__':
-    WSGIServer(':8080', application).serve_forever()
+    WSGIServer(':8080', application=application).serve_forever()
