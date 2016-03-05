@@ -31,7 +31,7 @@ def get_headers(environ):
     return headers
 
 def start_headers(headers):
-    enabled = ('Content-Type','Content-Length','Server')
+    enabled = ('Content-Type','Content-Length','Server','Connection')
     new_headers = []
     for k,v in headers.iteritems():
         if k in enabled:
