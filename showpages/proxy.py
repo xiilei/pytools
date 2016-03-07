@@ -38,10 +38,10 @@ def get_headers(environ):
     return headers
 
 def start_headers(headers):
-    enabled = ('Content-Type','Content-Length','Server','Connection')
+    enabled = ('content-type','content-length','server','connection')
     new_headers = []
     for k,v in headers.iteritems():
-        if k in enabled:
+        if k.lower() in enabled:
             new_headers.append((k,v))
     return new_headers
 
@@ -79,8 +79,10 @@ def application(environ,start_response):
     req = get_request(environ)
     if not req:
         start_response('502 Bad Gateway', [('Content-Type', 'text/html')])
+        return [b'bad request']
     elif req['method'] == 'CONNECT':
         start_response('502 Bad Gateway', [('Content-Type', 'text/html')])
+        return [b'bad request']
     else:
         try:
             res = request(
@@ -94,6 +96,7 @@ def application(environ,start_response):
             return res.content
         except:
             start_response('502 Bad Gateway', [('Content-Type', 'text/html')])
+            return [b'bad request']
 
 if __name__ == '__main__':
     WSGIServer(':8080', application=application).serve_forever()
