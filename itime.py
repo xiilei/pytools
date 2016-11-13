@@ -187,10 +187,19 @@ def test_datetime_now():
     print(e-b)
 
 def test_init_datetime():
-    print(datetime.datetime(2016, 11, 13, 0, 0, 0, 0))
-    dt  = Datetime(2016, 11, 13, timezone="Asia/Tokyo")
-    dt2 = dt = Datetime(2016, 11, 13, 0, 0, 0, 0 timezone="UTC")
+    dt0 = datetime.datetime(2016, 11, 13, 0, 0, 0, 0)
+    print(dt0)
+    
+    dt  = Datetime(2016, 11, 13, timezone="Asia/Shanghai")
+    dt1 = Datetime(2016, 11, 13, timezone="Asia/Tokyo")
+    dt2 = Datetime(2016, 11, 13, 0, 0, 0, 0 timezone="UTC")
+    dt3 = Datetime(2016, 11, 13, 0, 0, 0, 0 timezone="US/Hawaii")
+    dt4 = Datetime(2016, 11, 13, 0, 0, 0, 0 timezone="America/Los_Angeles")
     print(dt)
+    print(dt1)
+    print(dt2)
+    print(dt3)
+    print(dt4)
 
 def test():
     test_init_datetime()
