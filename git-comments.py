@@ -6,7 +6,7 @@ def logs(since=None,until=None):
     if since:
         cmd.append('--since=%s' % since)
     if end:
-        cmd.append('--until=%s' % end)
+        cmd.append('--until=%s' % until)
     proc = Popen(cmd,stdout = PIPE,stderr=STDOUT,shell=False)
     try:
         outs,errs = proc.communicate(timeout=15)
